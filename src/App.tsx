@@ -32,6 +32,63 @@ const markets: TargetMarket[] = ['US', 'UK', 'EU', 'Australia', 'Middle East', '
 const businessModels: BusinessModel[] = ['retail', 'wholesale', 'OEM', 'ODM'];
 const customizationOptions: CustomizationOption[] = ['logo', 'packaging', 'frame color', 'lens color'];
 
+const sourceLabels: Record<SourcePlatform, string> = {
+  '1688': '1688',
+  Amazon: 'Amazon',
+  TikTok: 'TikTok',
+  'image/manual': '图片/手动输入',
+  other: '其他',
+};
+
+const frameShapeLabels: Record<FrameShape, string> = {
+  square: '方框',
+  aviator: '飞行员',
+  'cat eye': '猫眼',
+  round: '圆框',
+  wraparound: '包覆式',
+  rectangle: '矩形',
+};
+
+const lensTypeLabels: Record<LensType, string> = {
+  UV400: 'UV400',
+  polarized: '偏光',
+  gradient: '渐变',
+  mirrored: '镜面',
+  photochromic: '变色',
+  clear: '透明',
+};
+
+const materialLabels: Record<Material, string> = {
+  PC: 'PC',
+  TR90: 'TR90',
+  acetate: '醋酸板材',
+  metal: '金属',
+  mixed: '混合材质',
+};
+
+const marketLabels: Record<TargetMarket, string> = {
+  US: '美国',
+  UK: '英国',
+  EU: '欧盟',
+  Australia: '澳大利亚',
+  'Middle East': '中东',
+  global: '全球',
+};
+
+const businessModelLabels: Record<BusinessModel, string> = {
+  retail: '零售',
+  wholesale: '批发',
+  OEM: 'OEM',
+  ODM: 'ODM',
+};
+
+const customizationLabels: Record<CustomizationOption, string> = {
+  logo: 'Logo 定制',
+  packaging: '包装定制',
+  'frame color': '镜框颜色',
+  'lens color': '镜片颜色',
+};
+
 const starterInput: ProductInput = {
   sourcePlatform: '1688',
   sourceUrl: 'https://example.com/1688-square-sunglasses',
@@ -105,18 +162,18 @@ function App() {
     <main className="app-shell">
       <header className="topbar">
         <div>
-          <p className="product-mark">Sunglasses Listing Agent</p>
+          <p className="product-mark">太阳镜上品助手</p>
           <h1>太阳镜国际站上品工作台</h1>
           <p className="topbar-copy">输入产品信息，检查风险，生成 SEO/GEO 上架包和 CSV。</p>
         </div>
         <div className="topbar-actions">
           <button className="secondary-action" type="button" onClick={handleAnalyze}>
             <ShieldAlert size={17} />
-            Analyze Product
+            分析产品
           </button>
           <button className="primary-action" type="button" onClick={handleGenerate}>
             <Sparkles size={17} />
-            Generate Listing
+            生成上架内容
           </button>
         </div>
       </header>
@@ -159,35 +216,35 @@ function InputPanel({
       <div className="panel-heading">
         <span className="panel-index">01</span>
         <div>
-          <h2>Product Input</h2>
+          <h2>产品输入</h2>
           <p>手动粘贴产品信息，第一版不抓取平台数据。</p>
         </div>
       </div>
 
       <div className="field-grid">
         <label>
-          Source
+          产品来源
           <select
             value={input.sourcePlatform}
             onChange={(event) => onUpdate('sourcePlatform', event.target.value as SourcePlatform)}
           >
             {sourcePlatforms.map((item) => (
               <option key={item} value={item}>
-                {item}
+                {sourceLabels[item]}
               </option>
             ))}
           </select>
         </label>
 
         <label>
-          Target Market
+          目标市场
           <select
             value={input.targetMarket}
             onChange={(event) => onUpdate('targetMarket', event.target.value as TargetMarket)}
           >
             {markets.map((item) => (
               <option key={item} value={item}>
-                {item}
+                {marketLabels[item]}
               </option>
             ))}
           </select>
@@ -195,7 +252,7 @@ function InputPanel({
       </div>
 
       <label>
-        Product URL
+        产品链接
         <input
           value={input.sourceUrl}
           onChange={(event) => onUpdate('sourceUrl', event.target.value)}
@@ -204,38 +261,38 @@ function InputPanel({
       </label>
 
       <label>
-        Product Name
+        产品名称
         <input
           value={input.productName}
           onChange={(event) => onUpdate('productName', event.target.value)}
-          placeholder="Oversized Square UV400 Sunglasses"
+          placeholder="例如：Oversized Square UV400 Sunglasses"
         />
       </label>
 
       <div className="field-grid">
         <label>
-          Frame Shape
+          镜框形状
           <select
             value={input.frameShape}
             onChange={(event) => onUpdate('frameShape', event.target.value as FrameShape)}
           >
             {frameShapes.map((item) => (
               <option key={item} value={item}>
-                {item}
+                {frameShapeLabels[item]}
               </option>
             ))}
           </select>
         </label>
 
         <label>
-          Lens Type
+          镜片类型
           <select
             value={input.lensType}
             onChange={(event) => onUpdate('lensType', event.target.value as LensType)}
           >
             {lensTypes.map((item) => (
               <option key={item} value={item}>
-                {item}
+                {lensTypeLabels[item]}
               </option>
             ))}
           </select>
@@ -244,28 +301,28 @@ function InputPanel({
 
       <div className="field-grid">
         <label>
-          Material
+          材质
           <select
             value={input.material}
             onChange={(event) => onUpdate('material', event.target.value as Material)}
           >
             {materials.map((item) => (
               <option key={item} value={item}>
-                {item}
+                {materialLabels[item]}
               </option>
             ))}
           </select>
         </label>
 
         <label>
-          Business Model
+          业务类型
           <select
             value={input.businessModel}
             onChange={(event) => onUpdate('businessModel', event.target.value as BusinessModel)}
           >
             {businessModels.map((item) => (
               <option key={item} value={item}>
-                {item}
+                {businessModelLabels[item]}
               </option>
             ))}
           </select>
@@ -283,7 +340,7 @@ function InputPanel({
       </label>
 
       <fieldset>
-        <legend>Customization</legend>
+        <legend>定制选项</legend>
         <div className="check-grid">
           {customizationOptions.map((option) => (
             <label className="check-option" key={option}>
@@ -292,30 +349,30 @@ function InputPanel({
                 checked={input.customization.includes(option)}
                 onChange={() => onToggleCustomization(option)}
               />
-              <span>{option}</span>
+              <span>{customizationLabels[option]}</span>
             </label>
           ))}
         </div>
       </fieldset>
 
       <label>
-        Product Notes
+        产品补充信息
         <textarea
           value={input.notes}
           rows={6}
           onChange={(event) => onUpdate('notes', event.target.value)}
-          placeholder="Use scenes, target buyers, colors, selling points..."
+          placeholder="填写使用场景、目标买家、颜色、卖点等信息..."
         />
       </label>
 
       <div className="panel-actions">
         <button className="secondary-action" type="button" onClick={onAnalyze}>
           <RefreshCw size={16} />
-          Analyze
+          分析
         </button>
         <button className="primary-action" type="button" onClick={onGenerate}>
           <Sparkles size={16} />
-          Generate
+          生成
         </button>
       </div>
     </section>
@@ -334,27 +391,27 @@ function AnalysisPanel({
       <div className="panel-heading">
         <span className="panel-index">02</span>
         <div>
-          <h2>Analysis</h2>
+          <h2>分析结果</h2>
           <p>确定性评分和风险词检查。</p>
         </div>
       </div>
 
       <div className={`risk-banner risk-${analysis.risk.level.toLowerCase()}`}>
         <div>
-          <span>IP Risk</span>
-          <strong>{analysis.risk.level}</strong>
+          <span>侵权风险</span>
+          <strong>{riskLevelLabel(analysis.risk.level)}</strong>
         </div>
-        <p>{analysis.risk.summary}</p>
+        <p>{riskSummaryLabel(analysis.risk)}</p>
       </div>
 
       <div className="score-summary">
         <div>
-          <span>Final Score</span>
+          <span>综合评分</span>
           <strong>{averageScore}</strong>
         </div>
         <div>
-          <span>Recommendation</span>
-          <strong>{analysis.recommendation}</strong>
+          <span>建议动作</span>
+          <strong>{recommendationLabel(analysis.recommendation)}</strong>
         </div>
       </div>
 
@@ -371,48 +428,48 @@ function AnalysisPanel({
       </div>
 
       <section className="subsection">
-        <h3>Recognition</h3>
+        <h3>产品识别</h3>
         <dl className="summary-grid">
           <div>
-            <dt>Product</dt>
-            <dd>{analysis.recognition.productType}</dd>
+            <dt>产品</dt>
+            <dd>{productTypeLabel(analysis.recognition.productType)}</dd>
           </div>
           <div>
-            <dt>Shape</dt>
-            <dd>{analysis.recognition.frameShape}</dd>
+            <dt>形状</dt>
+            <dd>{frameShapeLabels[analysis.recognition.frameShape]}</dd>
           </div>
           <div>
-            <dt>Lens</dt>
-            <dd>{analysis.recognition.lensType}</dd>
+            <dt>镜片</dt>
+            <dd>{lensTypeLabels[analysis.recognition.lensType]}</dd>
           </div>
           <div>
-            <dt>Buyer</dt>
-            <dd>{analysis.recognition.targetBuyer}</dd>
+            <dt>买家</dt>
+            <dd>{targetBuyerLabel(analysis.recognition.targetBuyer)}</dd>
           </div>
         </dl>
       </section>
 
       <section className="subsection">
-        <h3>Risk Matches</h3>
+        <h3>风险命中</h3>
         {analysis.risk.matches.length ? (
           <div className="match-list">
             {analysis.risk.matches.map((match) => (
               <div className="match-row" key={`${match.word}-${match.type}`}>
                 <div>
                   <strong>{match.word}</strong>
-                  <span>{match.type}</span>
+                  <span>{riskTypeLabel(match.type)}</span>
                 </div>
-                <p>Use: {match.replacement}</p>
+                <p>建议替换：{match.replacement}</p>
               </div>
             ))}
           </div>
         ) : (
-          <p className="empty-note">No risky terms detected.</p>
+          <p className="empty-note">未发现风险词。</p>
         )}
       </section>
 
       <section className="subsection">
-        <h3>Keyword Suggestions</h3>
+        <h3>关键词建议</h3>
         <div className="keyword-list">
           {analysis.keywords.map((keyword) => (
             <span key={keyword}>{keyword}</span>
@@ -439,39 +496,39 @@ function ListingPanel({
       <div className="panel-heading output-heading">
         <span className="panel-index">03</span>
         <div>
-          <h2>Generated Package</h2>
-          <p>可复制的安全上架内容。</p>
+          <h2>生成上架包</h2>
+          <p>字段标题为中文，生成内容保持英文。</p>
         </div>
         <button className="export-action" type="button" onClick={onExportCsv}>
           <Download size={16} />
-          Export CSV
+          导出 CSV
         </button>
       </div>
 
       <OutputBlock
         id="product-title"
-        label="SEO Title"
+        label="SEO 标题"
         value={listing.productTitle}
         copiedKey={copiedKey}
         onCopy={onCopy}
       />
       <OutputBlock
         id="b2b-title"
-        label="B2B Title"
+        label="B2B 标题"
         value={listing.b2bTitle}
         copiedKey={copiedKey}
         onCopy={onCopy}
       />
       <OutputBlock
         id="meta-description"
-        label="Meta Description"
+        label="Meta 描述"
         value={listing.metaDescription}
         copiedKey={copiedKey}
         onCopy={onCopy}
       />
       <OutputBlock
         id="html-description"
-        label="HTML Description"
+        label="HTML 描述"
         value={listing.htmlDescription}
         copiedKey={copiedKey}
         onCopy={onCopy}
@@ -489,7 +546,7 @@ function ListingPanel({
       <section className="subsection output-section">
         <div className="section-title">
           <FileText size={16} />
-          <h3>Image Prompts</h3>
+          <h3>图片提示词</h3>
         </div>
         {Object.entries(listing.imagePrompts).map(([key, value]) => (
           <OutputBlock
@@ -505,7 +562,7 @@ function ListingPanel({
 
       <OutputBlock
         id="schema"
-        label="JSON-LD"
+        label="JSON-LD 结构化数据"
         value={listing.schemaJson}
         copiedKey={copiedKey}
         onCopy={onCopy}
@@ -536,9 +593,9 @@ function OutputBlock({
     <div className="output-block">
       <div className="output-label">
         <span>{label}</span>
-        <button type="button" onClick={() => onCopy(id, value)} aria-label={`Copy ${label}`}>
+        <button type="button" onClick={() => onCopy(id, value)} aria-label={`复制${label}`}>
           {copied ? <Check size={15} /> : <Clipboard size={15} />}
-          {copied ? 'Copied' : 'Copy'}
+          {copied ? '已复制' : '复制'}
         </button>
       </div>
       <textarea className={tall ? 'output-text tall' : 'output-text'} readOnly value={value} />
@@ -548,25 +605,74 @@ function OutputBlock({
 
 function scoreLabel(key: string) {
   const labels: Record<string, string> = {
-    marketDemand: 'Market Demand',
-    supplyChain: 'Supply Chain',
-    profitPotential: 'Profit Potential',
-    contentPotential: 'Content Potential',
-    seoPotential: 'SEO Potential',
-    b2bInquiryPotential: 'B2B Inquiry',
+    marketDemand: '市场需求',
+    supplyChain: '供应链',
+    profitPotential: '利润潜力',
+    contentPotential: '素材潜力',
+    seoPotential: 'SEO 潜力',
+    b2bInquiryPotential: 'B2B 询盘',
   };
   return labels[key] ?? key;
 }
 
 function promptLabel(key: string) {
   const labels: Record<string, string> = {
-    whiteBackground: 'White Background',
-    lifestyle: 'Lifestyle',
-    detail: 'Detail',
-    customization: 'Customization',
-    shortVideo: 'Short Video',
+    whiteBackground: '白底图',
+    lifestyle: '生活方式图',
+    detail: '细节图',
+    customization: '定制展示',
+    shortVideo: '短视频脚本',
   };
   return labels[key] ?? key;
+}
+
+function riskLevelLabel(level: ProductAnalysis['risk']['level']) {
+  const labels = {
+    Low: '低',
+    Medium: '中',
+    High: '高',
+  };
+  return labels[level];
+}
+
+function riskSummaryLabel(risk: ProductAnalysis['risk']) {
+  if (risk.level === 'Low') return '未发现品牌词、仿牌词或高度相似表达。';
+  return `发现 ${risk.matches.length} 个风险表达。发布前请改成通用产品语言。`;
+}
+
+function recommendationLabel(recommendation: ProductAnalysis['recommendation']) {
+  const labels = {
+    Reject: '不建议上架',
+    Observe: '先观察',
+    'Test Listing': '测试上架',
+    'Priority Listing': '优先上架',
+  };
+  return labels[recommendation];
+}
+
+function riskTypeLabel(type: ProductAnalysis['risk']['matches'][number]['type']) {
+  const labels = {
+    brand: '品牌词',
+    replica: '仿牌词',
+    lookalike: '相似表达',
+    celebrity: '名人/IP',
+    image: '图片风险',
+  };
+  return labels[type];
+}
+
+function targetBuyerLabel(buyer: string) {
+  const labels: Record<string, string> = {
+    Retailer: '零售商',
+    Wholesaler: '批发买家',
+    'Private Label Brand': '贴牌品牌',
+    'Eyewear Product Developer': '眼镜产品开发买家',
+  };
+  return labels[buyer] ?? buyer;
+}
+
+function productTypeLabel(productType: string) {
+  return productType === 'sunglasses' ? '太阳镜' : productType;
 }
 
 export default App;
