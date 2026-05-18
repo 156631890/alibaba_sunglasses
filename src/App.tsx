@@ -23,6 +23,7 @@ import {
   type SourcePlatform,
   type TargetMarket,
 } from './domain/listingEngine';
+import type { FetchProductData, FetchProductResult } from './domain/productFetch';
 
 const sourcePlatforms: SourcePlatform[] = ['1688', 'Amazon', 'TikTok', 'image/manual', 'other'];
 const frameShapes: FrameShape[] = ['square', 'aviator', 'cat eye', 'round', 'wraparound', 'rectangle'];
@@ -104,6 +105,12 @@ const starterInput: ProductInput = {
     'Lightweight sunglasses for beach, travel, driving, and private label eyewear buyers. Suitable for summer catalog launches and wholesale fashion accessories.',
 };
 
+type FetchState =
+  | { status: 'idle'; message: string }
+  | { status: 'loading'; message: string }
+  | { status: 'success'; message: string }
+  | { status: 'error'; message: string };
+
 function App() {
   const [input, setInput] = useState<ProductInput>(starterInput);
   const [analysis, setAnalysis] = useState<ProductAnalysis>(() => analyzeProduct(starterInput));
@@ -111,6 +118,10 @@ function App() {
     generateListingPackage({ input: starterInput, analysis: analyzeProduct(starterInput) }),
   );
   const [copiedKey, setCopiedKey] = useState<string>('');
+  const [fetchState, setFetchState] = useState<FetchState>({
+    status: 'idle',
+    message: '粘贴 1688、Amazon、TikTok 或其他产品链接后，可以先抓取页面信息。',
+  });
 
   const averageScore = useMemo(() => {
     const values = Object.values(analysis.scores);
@@ -139,6 +150,48 @@ function App() {
     const nextListing = generateListingPackage({ input, analysis: nextAnalysis });
     setAnalysis(nextAnalysis);
     setListing(nextListing);
+  }
+
+  async function handleFetchProduct() {
+    if (!input.sourceUrl.trim()) {
+      setFetchState({ status: 'error', message: '请先粘贴产品链接。' });
+      return;
+    }
+
+    setFetchState({ status: 'loading', message: '正在读取链接信息...' });
+
+    try {
+      const response = await fetch('/api/fetch-product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: input.sourceUrl,
+          sourcePlatform: input.sourcePlatform,
+        }),
+      });
+      const result = (await response.json()) as FetchProductResult;
+
+      if (!result.ok) {
+        setFetchState({ status: 'error', message: result.error.message });
+        return;
+      }
+
+      const fetchedInput = applyFetchedProductData(input, result.data);
+      const nextAnalysis = analyzeProduct(fetchedInput);
+
+      setInput(fetchedInput);
+      setAnalysis(nextAnalysis);
+      setListing(generateListingPackage({ input: fetchedInput, analysis: nextAnalysis }));
+      setFetchState({
+        status: 'success',
+        message: `已抓取页面信息，置信度：${confidenceLabel(result.data.confidence)}。请检查后再生成上架内容。`,
+      });
+    } catch {
+      setFetchState({
+        status: 'error',
+        message: '链接读取失败。Vercel 部署后可使用自动抓取；本地 Vite 预览可继续手动填写。',
+      });
+    }
   }
 
   async function copyText(key: string, value: string) {
@@ -181,8 +234,10 @@ function App() {
       <section className="workbench" aria-label="Sunglasses listing workbench">
         <InputPanel
           input={input}
+          fetchState={fetchState}
           onUpdate={updateInput}
           onToggleCustomization={toggleCustomization}
+          onFetchProduct={handleFetchProduct}
           onAnalyze={handleAnalyze}
           onGenerate={handleGenerate}
         />
@@ -200,14 +255,18 @@ function App() {
 
 function InputPanel({
   input,
+  fetchState,
   onUpdate,
   onToggleCustomization,
+  onFetchProduct,
   onAnalyze,
   onGenerate,
 }: {
   input: ProductInput;
+  fetchState: FetchState;
   onUpdate: <Key extends keyof ProductInput>(key: Key, value: ProductInput[Key]) => void;
   onToggleCustomization: (option: CustomizationOption) => void;
+  onFetchProduct: () => void;
   onAnalyze: () => void;
   onGenerate: () => void;
 }) {
@@ -217,7 +276,7 @@ function InputPanel({
         <span className="panel-index">01</span>
         <div>
           <h2>产品输入</h2>
-          <p>手动粘贴产品信息，第一版不抓取平台数据。</p>
+          <p>可先抓取链接信息，也可以手动填写或修改。</p>
         </div>
       </div>
 
@@ -259,6 +318,19 @@ function InputPanel({
           placeholder="https://..."
         />
       </label>
+
+      <div className="fetch-row">
+        <button
+          className="fetch-action"
+          type="button"
+          onClick={onFetchProduct}
+          disabled={fetchState.status === 'loading'}
+        >
+          <RefreshCw size={16} />
+          {fetchState.status === 'loading' ? '正在抓取...' : '抓取链接信息'}
+        </button>
+        <p className={`fetch-status fetch-${fetchState.status}`}>{fetchState.message}</p>
+      </div>
 
       <label>
         产品名称
@@ -624,6 +696,29 @@ function promptLabel(key: string) {
     shortVideo: '短视频脚本',
   };
   return labels[key] ?? key;
+}
+
+function confidenceLabel(confidence: FetchProductData['confidence']) {
+  const labels = {
+    low: '低',
+    medium: '中',
+    high: '高',
+  };
+  return labels[confidence];
+}
+
+function applyFetchedProductData(input: ProductInput, data: FetchProductData): ProductInput {
+  return {
+    ...input,
+    productName: data.title || input.productName,
+    notes: mergeFetchedNotes(input.notes, data.notes),
+  };
+}
+
+function mergeFetchedNotes(currentNotes: string, fetchedNotes: string) {
+  if (!fetchedNotes.trim()) return currentNotes;
+  if (!currentNotes.trim()) return fetchedNotes;
+  return `${fetchedNotes}\n\nManual notes: ${currentNotes}`;
 }
 
 function riskLevelLabel(level: ProductAnalysis['risk']['level']) {

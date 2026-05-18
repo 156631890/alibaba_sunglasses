@@ -112,6 +112,62 @@ h1 {
   background: #dbe6ef;
 }
 
+.fetch-row {
+  display: grid;
+  gap: 8px;
+  margin: -2px 0 13px;
+}
+
+.fetch-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 13px;
+  border-radius: 7px;
+  color: #fff;
+  background: #274c77;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.fetch-action:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.fetch-status {
+  min-height: 34px;
+  padding: 8px 10px;
+  margin: 0;
+  border: 1px solid #d6dee8;
+  border-radius: 7px;
+  background: #f8fafc;
+  color: #5c6676;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.fetch-loading {
+  border-color: #bad5f0;
+  background: #eef6ff;
+  color: #24527a;
+}
+
+.fetch-success {
+  border-color: #a8dcc0;
+  background: #eaf8ef;
+  color: #246146;
+}
+
+.fetch-error {
+  border-color: #e6a19d;
+  background: #ffe9e7;
+  color: #8a2f2b;
+}
+
 .export-action {
   color: #fff;
   background: #274c77;
