@@ -259,6 +259,10 @@ export function generateListingPackage({
   };
 }
 
+export function findRiskMatchesInText(text: string): RiskMatch[] {
+  return RISK_RULES.filter((rule) => rule.pattern.test(text)).map(({ pattern: _pattern, ...match }) => match);
+}
+
 export function exportListingCsv(listing: ListingPackage): string {
   const headers = [
     'Product Title',
@@ -302,7 +306,7 @@ export function exportListingCsv(listing: ListingPackage): string {
 
 function checkRisk(input: ProductInput): ProductAnalysis['risk'] {
   const text = `${input.productName} ${input.notes}`;
-  const matches = RISK_RULES.filter((rule) => rule.pattern.test(text)).map(({ pattern: _pattern, ...match }) => match);
+  const matches = findRiskMatchesInText(text);
   const hasHigh = matches.some((match) => match.level === 'High');
   const level: RiskLevel = hasHigh || matches.length >= 3 ? 'High' : matches.length ? 'Medium' : 'Low';
 

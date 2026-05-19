@@ -1,6 +1,7 @@
 import {
   analyzeProduct,
   exportListingCsv,
+  findRiskMatchesInText,
   generateListingPackage,
   type ProductInput,
 } from './listingEngine';
@@ -30,6 +31,13 @@ test('detects risky brand and replica wording', () => {
   expect(analysis.risk.matches.map((match) => match.word)).toEqual(
     expect.arrayContaining(['Ray-Ban', 'replica', 'dupe', 'designer inspired']),
   );
+});
+
+test('finds risky terms in arbitrary generated text', () => {
+  const matches = findRiskMatchesInText('Ray-Ban replica sunglasses with a watermark image');
+
+  expect(matches.map((match) => match.word)).toEqual(['Ray-Ban', 'replica', 'watermark']);
+  expect(matches.every((match) => match.level === 'High' || match.level === 'Medium')).toBe(true);
 });
 
 test('generates safe listing copy without risky source terms', () => {

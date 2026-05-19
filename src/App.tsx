@@ -23,6 +23,7 @@ import {
   type SourcePlatform,
   type TargetMarket,
 } from './domain/listingEngine';
+import type { GeminiListingResult } from './domain/geminiListing';
 import type { FetchProductData, FetchProductResult } from './domain/productFetch';
 
 const sourcePlatforms: SourcePlatform[] = ['1688', 'Amazon', 'TikTok', 'image/manual', 'other'];
@@ -111,6 +112,12 @@ type FetchState =
   | { status: 'success'; message: string }
   | { status: 'error'; message: string };
 
+type GeminiState =
+  | { status: 'idle'; message: string }
+  | { status: 'loading'; message: string }
+  | { status: 'success'; message: string }
+  | { status: 'error'; message: string };
+
 function App() {
   const [input, setInput] = useState<ProductInput>(starterInput);
   const [analysis, setAnalysis] = useState<ProductAnalysis>(() => analyzeProduct(starterInput));
@@ -121,6 +128,10 @@ function App() {
   const [fetchState, setFetchState] = useState<FetchState>({
     status: 'idle',
     message: '粘贴 1688、Amazon、TikTok 或其他产品链接后，可以先抓取页面信息。',
+  });
+  const [geminiState, setGeminiState] = useState<GeminiState>({
+    status: 'idle',
+    message: '可选：使用 Gemini 生成更丰富的英文上架内容。',
   });
 
   const averageScore = useMemo(() => {
@@ -150,6 +161,56 @@ function App() {
     const nextListing = generateListingPackage({ input, analysis: nextAnalysis });
     setAnalysis(nextAnalysis);
     setListing(nextListing);
+    setGeminiState({
+      status: 'idle',
+      message: '模板内容已更新，可选用 Gemini 生成更丰富的英文内容。',
+    });
+  }
+
+  async function handleGenerateWithGemini() {
+    const nextAnalysis = analyzeProduct(input);
+    const fallbackListing = generateListingPackage({ input, analysis: nextAnalysis });
+
+    setAnalysis(nextAnalysis);
+    setGeminiState({ status: 'loading', message: 'Gemini 正在生成英文上架内容...' });
+
+    try {
+      const response = await fetch('/api/generate-listing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input,
+          analysis: nextAnalysis,
+          fallbackListing,
+        }),
+      });
+
+      if (!response.headers.get('content-type')?.includes('application/json')) {
+        setGeminiState({
+          status: 'error',
+          message: 'Gemini 接口没有返回 JSON。请确认 /api/generate-listing 已部署。',
+        });
+        return;
+      }
+
+      const result = (await response.json()) as GeminiListingResult;
+
+      if (!result.ok) {
+        setGeminiState({ status: 'error', message: result.error.message });
+        return;
+      }
+
+      setListing(result.data);
+      setGeminiState({
+        status: 'success',
+        message: 'Gemini 已生成英文内容，请检查后再发布。',
+      });
+    } catch {
+      setGeminiState({
+        status: 'error',
+        message: '无法连接 Gemini 生成接口。请稍后重试或继续使用模板内容。',
+      });
+    }
   }
 
   async function handleFetchProduct() {
@@ -191,6 +252,10 @@ function App() {
       setInput(fetchedInput);
       setAnalysis(nextAnalysis);
       setListing(generateListingPackage({ input: fetchedInput, analysis: nextAnalysis }));
+      setGeminiState({
+        status: 'idle',
+        message: '链接信息已更新，可选用 Gemini 生成更丰富的英文内容。',
+      });
       setFetchState({
         status: 'success',
         message: `已抓取页面信息，置信度：${confidenceLabel(result.data.confidence)}。请检查后再生成上架内容。`,
@@ -254,8 +319,10 @@ function App() {
         <ListingPanel
           listing={listing}
           copiedKey={copiedKey}
+          geminiState={geminiState}
           onCopy={copyText}
           onExportCsv={handleExportCsv}
+          onGenerateGemini={handleGenerateWithGemini}
         />
       </section>
     </main>
@@ -564,13 +631,17 @@ function AnalysisPanel({
 function ListingPanel({
   listing,
   copiedKey,
+  geminiState,
   onCopy,
   onExportCsv,
+  onGenerateGemini,
 }: {
   listing: ListingPackage;
   copiedKey: string;
+  geminiState: GeminiState;
   onCopy: (key: string, value: string) => void;
   onExportCsv: () => void;
+  onGenerateGemini: () => void;
 }) {
   return (
     <section className="panel listing-panel">
@@ -584,6 +655,19 @@ function ListingPanel({
           <Download size={16} />
           导出 CSV
         </button>
+      </div>
+
+      <div className="gemini-row">
+        <button
+          className="gemini-action"
+          type="button"
+          onClick={onGenerateGemini}
+          disabled={geminiState.status === 'loading'}
+        >
+          <Sparkles size={16} />
+          {geminiState.status === 'loading' ? 'Gemini 生成中...' : 'Gemini 生成英文内容'}
+        </button>
+        <p className={`gemini-status gemini-${geminiState.status}`}>{geminiState.message}</p>
       </div>
 
       <OutputBlock
