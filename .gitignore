@@ -7,3 +7,4 @@ dist/
 coverage/
 tsconfig.tsbuildinfo
 vite.*.log
+vite-*.log

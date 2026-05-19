@@ -169,6 +169,15 @@ function App() {
           sourcePlatform: input.sourcePlatform,
         }),
       });
+
+      if (!response.headers.get('content-type')?.includes('application/json')) {
+        setFetchState({
+          status: 'error',
+          message: '抓取接口没有返回 JSON。请确认当前环境支持 /api/fetch-product，或重新部署最新代码。',
+        });
+        return;
+      }
+
       const result = (await response.json()) as FetchProductResult;
 
       if (!result.ok) {
@@ -189,7 +198,7 @@ function App() {
     } catch {
       setFetchState({
         status: 'error',
-        message: '链接读取失败。Vercel 部署后可使用自动抓取；本地 Vite 预览可继续手动填写。',
+        message: '无法连接抓取接口。请刷新页面或稍后重试；如果是本地预览，请重新启动 npm run dev。',
       });
     }
   }
